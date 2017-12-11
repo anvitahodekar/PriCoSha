@@ -1,0 +1,27 @@
+<html>
+<head>
+</head>
+<body style="background: lightblue;">
+	<h1 style="margin: 10px 500px;">Registration</h1>
+<form action="/registerAuth" method="POST">
+	<input style="padding:10px; margin: 50px 500px;" type="text" name = "username" placeholder=Username required/></br>
+
+	<input  style="padding:10px; margin: 0px 500px;" type="password" name = "password" placeholder=Password required/></br>
+
+	<input style="padding:10px; margin: 50px 500px;" type="text" name = "first_name" placeholder=First_Name required/></br>
+
+	<input style="padding:10px; margin: 0px 500px;" type="text" name = "last_name" placeholder=Last_Name required/></br>
+
+	<input style="padding:10px; margin: 50px 500px;" type="submit" value = Register />
+	{% if error %}
+		<p class="error"><strong>Error:</strong> {{error}}</p>
+	{% endif %}
+</form>
+
+<a href="/">Go back</a>
+
+</main>
+</body>
+
+
+</html>

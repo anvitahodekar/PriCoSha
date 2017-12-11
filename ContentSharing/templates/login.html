@@ -1,0 +1,20 @@
+<html>
+<head>
+</head>
+<body style="background: lightblue;">
+	<h1 style="margin: 10px 500px;"> Login Page</h1>
+<form action="/loginAuth" method="POST">
+	<input style="padding:10px; margin: 50px 500px;" type="text" name = "username" placeholder="username" required/> </br>
+	<input style="padding:10px; margin: 0px 500px;" type="password" name = "password" placeholder="password" required/></br>
+	<input style="padding:10px; margin: 50px 500px;" type="submit" value = Login />
+	{% if error %}
+		<p class="error"><strong>Error:</strong> {{error}}</p>
+	{% endif %}
+</form>
+
+<a href="/">Go back</a>
+
+</body>
+
+
+</html>

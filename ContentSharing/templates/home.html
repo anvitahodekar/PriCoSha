@@ -1,0 +1,34 @@
+<html>
+<head>
+</head>
+<body style="background: lightblue;">
+	<h1>test</h1>
+<form action="/post" method="POST" style="background= green; font: "Arial", sans-serif; font-size: 30px;">
+	<h1>Welcome {{username}}</h1>
+	<input type="text" name = “Content” placeholder="post" required/> </br>
+	<input type="submit" value = Post />
+</form>
+
+<style type="text/css">
+	table, th, td{
+		border: 1px solid black;
+	}
+</style>
+
+<table>
+	<th>Time</th>
+	<th>Post</th>
+
+{% for line in posts %}
+	<tr>
+		<td>{{line.id}}</td>
+	</tr>
+{% endfor %}
+</table>
+
+<a href="/logout">Logout</a>
+
+</body>
+
+
+</html>
