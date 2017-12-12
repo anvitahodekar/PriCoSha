@@ -43,7 +43,7 @@ def loginAuth():
         #executes query
         query = 'SELECT * FROM Person WHERE username = %s and password = %s'
         h = hashlib.md5(password.encode())
-        cursor.execute(query, (username, h.hexdigest())
+        cursor.execute(query, (username, h.hexdigest()))
         #stores the results in a variable
         data = cursor.fetchone()
         #use fetchall() if you are expecting more than 1 data row
@@ -104,16 +104,46 @@ def home():
 def post():
         username = session['username']
         cursor = conn.cursor();
-        content = request.form['Content']
-        timest=  time.time()
-        public = False
+        content_name = request.form['content_name']
+        file_path = request.form['file_path']
+        public = 0
         if request.form.get('public'):
-                public = True
-        query = 'INSERT INTO Content ( username, timest, content_name, public) VALUES(%s, %s, %s, %s)'
-        cursor.execute(query, (Content, username, timest, content_name, public))
+                public = 1
+        query = 'INSERT INTO Content ( username, file_path, content_name, public) VALUES(%s, %s, %s, %s)'
+        cursor.execute(query, (username, file_path, content_name, public))
         conn.commit()
         cursor.close()
         return redirect(url_for('home'))
+
+@app.route('/makeFriendGroup', methods=['GET', 'POST'])
+def makeFriendGroup():
+    username = session['username']
+    cursor = conn.cursor();
+    group_name = request.form['group_name']
+    description = request.form['description']
+    friendOne = request.form['username1']
+    friendTwo = request.form['username2']
+    query = 'INSERT into FriendGroup (username, group_name, description) VALUES (%s, %s, %s)'
+    cursor.execute(query, (username, group_name, description))
+    query = 'INSERT into Member(username, group_name, username_creator) VALUES (%s, %s, %s)'
+    cursor.execute(query, (friendOne, group_name, username))
+    cursor.execute(query, (friendTwo, group_name, username))
+    conn.commit()
+    cursor.close()
+    return redirect(url_for('home'))
+
+@app.route('/addFriend', methods=['GET', 'POST'])
+def addFriend():
+    username = session['username']
+    cursor = conn.cursor();
+    group_name = request.form['group_name']
+    friend = request.form['username']
+    query = 'INSERT into Member(username, group_name, username_creator) VALUES (%s, %s, %s)'
+    cursor.execute(query, (friend, group_name, username))
+    conn.commit()
+    cursor.close()
+    return redirect(url_for('home'))
+
 
 
 @app.route('/logout')

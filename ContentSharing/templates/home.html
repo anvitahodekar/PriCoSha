@@ -2,11 +2,33 @@
 <head>
 </head>
 <body style="background: lightblue;">
-	<h1>test</h1>
+
 <form action="/post" method="POST" style="background= green; font: "Arial", sans-serif; font-size: 30px;">
 	<h1>Welcome {{username}}</h1>
-	<input type="text" name = “Content” placeholder="post" required/> </br>
-	<input type="submit" value = Post />
+	<h4> Post Here</h4>
+	<input type="text" name = "content_name" placeholder="Content Name" required/> </br>
+	<input type="text" name = "file_path" placeholder="File Path"/> </br>
+	<label for = "public">Public:</label>
+	<input type="checkbox" name = "public" placeholder=""/> </br>
+	<input type="submit" value = Post /> </br>
+</form>
+
+<form action="/makeFriendGroup" method="POST" style= "background= green; font: "Arial", sans-serif; font-size: 30px;">
+	<h4> Make Friend Group</h4>
+	<input type="text" name = "group_name" placeholder="Group Name" required/> </br>
+	<input type="text" name= "description" placeholder="Description" required/> </br>
+	<input type="username" name= "username1" placeholder="Friend One" required/> </br>
+	<input type="username" name= "username2" placeholder="Friend Two" required/> </br>
+	<input type="submit" value = Make /> </br>
+
+</form>
+
+<form action="/addFriend" method="POST" style= "background= green; font: "Arial", sans-serif; font-size: 30px;">
+	<h4> Add Friend to Group</h4>
+	<input type="FriendGroup" name = "group_name" placeholder="Group Name" required/> </br>
+	<input type="username" name = "username" placeholder="Friend" required/> </br>
+	<input type="submit" value = Add /> </br>
+
 </form>
 
 <style type="text/css">
@@ -22,6 +44,7 @@
 {% for line in posts %}
 	<tr>
 		<td>{{line.id}}</td>
+		<td>{{line.timest}}</td>
 	</tr>
 {% endfor %}
 </table>
