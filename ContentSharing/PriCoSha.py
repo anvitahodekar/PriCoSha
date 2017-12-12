@@ -1,5 +1,6 @@
 #Import Flask Library
-from flask import Flask, render_template, request, session, url_for, redirect
+from flask import Flask, render_template, request, flash, session, url_for, redirect
+
 import pymysql.cursors
 import hashlib
 import datetime
@@ -94,7 +95,7 @@ def registerAuth():
 def home():
         username = session['username']
         cursor = conn.cursor();
-        query = 'SELECT timest, id FROM Content WHERE username = %s ORDER BY timest DESC'
+        query = 'SELECT timest, id, content_name, file_path FROM Content WHERE username = %s ORDER BY timest DESC'
         cursor.execute(query, (username))
         data = cursor.fetchall()
         cursor.close()
@@ -143,6 +144,36 @@ def addFriend():
     conn.commit()
     cursor.close()
     return redirect(url_for('home'))
+
+@app.route('/tagFriend', methods=['GET', 'POST'])
+def tagFriend():
+    username_tagger = session['username']
+    cursor = conn.cursor();
+    content_id = request.form['content_id']
+    username_taggee = request.form['username']
+    query ='SELECT member.username FROM Share Natural Join Member where id = %s AND member.username = %s'
+    cursor.execute(query, (content_id, username_tagger))
+    data = cursor.fetchone()
+    if not(data):
+        flash('You Dont Have Access to this Item')
+        return redirect(url_for('home'))
+    cursor.execute(query, (content_id, username_taggee))
+    data = cursor.fetchone()
+    if not(data):
+        flash('The person you have tagged does not have access to this item')
+        return redirect(url_for('home'))
+    status  = 0
+    if(username_tagger == username_taggee):
+        status = 1
+    query = 'INSERT into Tag(id, username_taggee, username_tagger, status) VALUES (%s, %s, %s, %s)'
+    cursor.execute(query, (content_id, username_taggee, username_tagger, status))
+    conn.commit()
+    cursor.close()
+    return redirect(url_for('home'))
+
+
+
+
 
 
 
