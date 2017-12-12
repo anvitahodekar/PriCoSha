@@ -36,6 +36,16 @@
 	<input type="id" name= "content_id" placeholder="Content ID" required/> </br>
 	<input type="text" name= "username" placeholder="Friend" required/> </br>
 	<input type="submit" value = Add /> </br>
+	{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class=flashes>
+    {% for message in messages %}
+      <li>{{ message }}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+{% block body %}{% endblock %}
 </form>
 
 <style type="text/css">
@@ -44,12 +54,13 @@
 	}
 </style>
 
+</br><h3>My Posts</h3>
+
 <table>
 	<th>Post</th>
 	<th>Name</th>
 	<th>File Path</th>
 	<th>Time</th>
-	<th>Accept</th>
 
 {% for line in posts %}
 	<tr>
@@ -57,29 +68,52 @@
 		<td>{{line.content_name}}</td>
 		<td>{{line.file_path}}</td>
 		<td>{{line.timest}}</td>
-		<td> <form action="/acceptTag" method="POST" style= "background= green; font: "Arial", sans-serif; font-size: 30px;">
-			<input type="submit" value = Accept /> </br>
-		</form>
-		<form action="/deleteTag" method="POST" style= "background= green; font: "Arial", sans-serif; font-size: 30px;">
-			<input type="submit" value = Decline /> </br>
-	</td>
 	</tr>
 {% endfor %}
 </table>
 
+
+</br> <h3>Shared With Me</h3>
+
 <table>
 	<th>Post</th>
 	<th>Name</th>
-	<th>File Path</th>
+	<th>Creator</th>
 	<th>Time</th>
 
 {% for line in shared %}
 	<tr>
 		<td>{{line.id}}</td>
 		<td>{{line.content_name}}</td>
-		<td>{{line.file_path}}</td>
+		<td>{{line.username}}</td>
 		<td>{{line.timest}}</td>
 	</tr>
+{% endfor %}
+</table>
+
+</br><h3>Pending Tags</h3>
+
+<table>
+	<th>Post</th>
+	<th>Name</th>
+	<th>Tagger</th>
+	<th>Accept</th>
+
+{% for line in pending %}
+	<tr>
+		<td>{{line.id}}</td>
+		<td>{{line.content_name}}</td>
+		<td>{{line.username_tagger}}</td>
+		<td> <form action="/acceptTag" method="POST" style= "background= green; font: "Arial", sans-serif; font-size: 30px;">
+			<input type="hidden" name = "post_id" value="1"/>
+			<input type="hidden" name = "username_tagger" value= "UserB"/>
+			<input type="submit" value = Accept /> </br>
+		</form>
+		<form action="/deleteTag" method="POST" style= "background= green; font: "Arial", sans-serif; font-size: 30px;">
+			<input type="submit" value = Decline /> </br>
+		</form>
+	</td>
+</tr>
 {% endfor %}
 </table>
 

@@ -98,8 +98,14 @@ def home():
         query = 'SELECT timest, id, content_name, file_path FROM Content WHERE username = %s ORDER BY timest DESC'
         cursor.execute(query, (username))
         data = cursor.fetchall()
+        query = 'SELECT id, content_name, timest, username FROM Content WHERE public = %s or id in (SELECT id FROM SHARE, Member WHERE Share.group_name = Member.group_name && Member.username = %s)'
+        cursor.execute(query, (1, username))
+        shareddata = cursor.fetchall()
+        query = 'SELECT Tag.id, Content.content_name, Tag.username_tagger FROM Content JOIN Tag WHERE Tag.id = Content.id AND status= %s AND username_taggee = %s'
+        cursor.execute(query, (0,username))
+        pendingdata = cursor.fetchall()
         cursor.close()
-        return render_template('home.html', username=username, posts=data)
+        return render_template('home.html', username=username, posts=data, shared = shareddata, pending = pendingdata)
 
 @app.route('/post', methods=['GET', 'POST'])
 def post():
@@ -151,12 +157,28 @@ def tagFriend():
     cursor = conn.cursor();
     content_id = request.form['content_id']
     username_taggee = request.form['username']
-    query ='SELECT member.username FROM Share Natural Join Member where id = %s AND member.username = %s'
-    cursor.execute(query, (content_id, username_tagger))
+    query = 'SELECT id FROM Content WHERE id = %s'
+    cursor.execute(query, (content_id))
     data = cursor.fetchone()
-    if not(data):
-        flash('You Dont Have Access to this Item')
+    if not (data):
+        flash('This item doesnt exist')
         return redirect(url_for('home'))
+    query = 'SELECT username FROM Person WHERE username = %s'
+    cursor.execute(query, (username_taggee))
+    data = cursor.fetchone()
+    if not (data):
+        flash('This person doesnt exist')
+        return redirect(url_for('home'))
+    query ='SELECT username FROM Content WHERE id = %s'
+    cursor.execute(query, (content_id))
+    data = cursor.fetchone()
+    if not (username_tagger == data):
+        query ='SELECT member.username FROM Share Natural Join Member where id = %s AND member.username = %s'
+        cursor.execute(query, (content_id, username_tagger))
+        data = cursor.fetchone()
+        if not(data):
+            flash('You Dont Have Access to this Item')
+            return redirect(url_for('home'))
     cursor.execute(query, (content_id, username_taggee))
     data = cursor.fetchone()
     if not(data):
@@ -171,7 +193,17 @@ def tagFriend():
     cursor.close()
     return redirect(url_for('home'))
 
-
+@app.route('/acceptTag', methods=['GET', 'POST'])
+def acceptTag():
+    username = session['username']
+    cursor = conn.cursor()
+    posts_id = post_id
+    usernames_tagger = username_tagger
+    query = 'UPDATE Tag SET status = 1 WHERE id = %s AND username_tagger = %s AND username_taggee = %s'
+    cursor.execute(query,(posts_id, usernames_tagger, username))
+    conn.commit()
+    cursor.close()
+    return redirect(url_for('home'))
 
 
 
