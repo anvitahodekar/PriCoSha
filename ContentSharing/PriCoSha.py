@@ -95,17 +95,55 @@ def registerAuth():
 def home():
         username = session['username']
         cursor = conn.cursor();
-        query = 'SELECT timest, id, content_name, file_path FROM Content WHERE username = %s ORDER BY timest DESC'
+        query = 'SELECT timest, id, content_name, file_path, likes FROM Content WHERE username = %s ORDER BY timest DESC'
         cursor.execute(query, (username))
         data = cursor.fetchall()
-        query = 'SELECT id, content_name, timest, username FROM Content WHERE public = %s or id in (SELECT id FROM SHARE, Member WHERE Share.group_name = Member.group_name && Member.username = %s)'
-        cursor.execute(query, (1, username))
+        query = 'SELECT id, content_name, timest, username, likes FROM Content WHERE (username != %s) AND (public = %s or id in (SELECT id FROM SHARE, Member WHERE Share.group_name = Member.group_name && Member.username = %s))'
+        cursor.execute(query, (username,1, username))
         shareddata = cursor.fetchall()
         query = 'SELECT Tag.id, Content.content_name, Tag.username_tagger FROM Content JOIN Tag WHERE Tag.id = Content.id AND status= %s AND username_taggee = %s'
         cursor.execute(query, (0,username))
         pendingdata = cursor.fetchall()
+        query = 'SELECT DISTINCT Member.group_name, description, Member.username from Member JOIN FriendGroup WHERE FriendGroup.group_name = Member.group_name AND Member.username_creator = FriendGroup.username AND Member.username = %s'
+        cursor.execute(query, (username))
+        friendgroups = cursor.fetchall()
+        query = 'SELECT DISTINCT group_name, description FROM FriendGroup where username = %s'
+        cursor.execute(query, (username))
+        mygroups = cursor.fetchall()
         cursor.close()
-        return render_template('home.html', username=username, posts=data, shared = shareddata, pending = pendingdata)
+        return render_template('home.html', username=username, posts=data, shared = shareddata, pending = pendingdata, friendgroups = friendgroups, mygroups = mygroups)
+
+@app.route('/postdata', methods = ['GET', 'POST'])
+def postdata():
+    username = session['username']
+    cursor = conn.cursor();
+    content_id = request.form['content_id']
+    content_name = request.form['content_name']
+    content_time = request.form['content_time']
+    content_user = username
+    query = 'SELECT DISTINCT Comment.username, comment_text, Comment.timest FROM Comment JOIN Content WHERE Comment.id= %s'
+    cursor.execute(query, (content_id))
+    comments = cursor.fetchall()
+    query = 'SELECT DISTINCT FriendGroup.group_name, description FROM FriendGroup JOIN Share  Where Share.ID = %s'
+    cursor.execute(query, (content_id))
+    groups = cursor.fetchall()
+    query = 'SELECT DISTINCT username_tagger, username_taggee, Tag.timest FROM Tag JOIN Content WHERE status=1 && Tag.id = %s'
+    cursor.execute(query, (content_id))
+    tags = cursor.fetchall()
+    cursor.close()
+    return render_template('postdata.html', post_name = content_name, post_user = content_user, post_time = content_time, comments = comments, groups = groups, tags = tags)
+
+@app.route('/groupview', methods = ['GET', 'POST'])
+def groupview():
+    username = session['username']
+    cursor = conn.cursor();
+    group_name = request.form['group_name']
+    description = request.form['description']
+    query = 'SELECT DISTINCT Member.username, first_name, last_name FROM Member JOIN Person WHERE Person.username = Member.username AND group_name = %s AND username_creator = %s'
+    cursor.execute(query, (group_name, username))
+    people = cursor.fetchall()
+    cursor.close()
+    return render_template('groupview.html', Friend_Group = group_name, people = people, description = description)
 
 @app.route('/post', methods=['GET', 'POST'])
 def post():
@@ -145,6 +183,31 @@ def addFriend():
     cursor = conn.cursor();
     group_name = request.form['group_name']
     friend = request.form['username']
+
+    query = 'SELECT username FROM Person WHERE username = %s'
+    cursor.execute(query, (friend))
+    data = cursor.fetchone()
+    if not (data):
+        flash('This friend does not exist')
+        return redirect(url_for('home'))
+    query = 'SELECT group_name FROM FriendGroup WHERE group_name = %s'
+    cursor.execute(query, (group_name))
+    data = cursor.fetchone()
+    if not (data):
+        flash('This group does not exist')
+        return redirect(url_for('home'))
+    query = 'SELECT username FROM FriendGroup WHERE group_name = %s AND username = %s'
+    cursor.execute(query, (group_name, username))
+    data = cursor.fetchone()
+    if (data):
+        flash('You own this friend Group')
+        return redirect(url_for('home'))
+    query = 'SELECT username FROM Member WHERE group_name = %s AND username = %s'
+    cursor.execute(query, (group_name, username))
+    data = cursor.fetchone()
+    if (data):
+        flash('This friend is already in this group')
+        return redirect(url_for('home'))
     query = 'INSERT into Member(username, group_name, username_creator) VALUES (%s, %s, %s)'
     cursor.execute(query, (friend, group_name, username))
     conn.commit()
@@ -193,20 +256,90 @@ def tagFriend():
     cursor.close()
     return redirect(url_for('home'))
 
+@app.route('/changedescrip', methods=['GET', 'POST'])
+def changedescrip():
+    username = session['username']
+    cursor = conn.cursor();
+    newtext = request.form['edit']
+    group_name = request.form['group_name']
+    query = 'UPDATE FriendGroup SET description = %s WHERE group_name = %s AND username = %s'
+    cursor.execute(query, (newtext, group_name, username))
+    conn.commit()
+    cursor.close()
+    return redirect(url_for('home'))
+
+@app.route('/shareToGroup', methods=['Get', 'Post'])
+def shareToGroup():
+    username = session['username']
+    cursor = conn.cursor();
+    content_id = request.form['content_id']
+    group_name = request.form['group_name']
+    query = 'INSERT into Share(id, group_name, username) VALUES (%s, %s, %s)'
+    cursor.execute(query,(content_id, group_name, username))
+    conn.commit()
+    cursor.close()
+    return redirect(url_for('home'))
+
+@app.route('/likePost', methods = ['GET', 'POST'])
+def likePost():
+    username = session['username']
+    cursor = conn.cursor();
+    content_id = request.form['content_id']
+    query = 'UPDATE Content SET likes = likes + 1 WHERE id = %s'
+    cursor.execute(query, (content_id))
+    conn.commit()
+    cursor.close()
+    return redirect(url_for('home'))
+
 @app.route('/acceptTag', methods=['GET', 'POST'])
 def acceptTag():
     username = session['username']
-    cursor = conn.cursor()
-    posts_id = post_id
-    usernames_tagger = username_tagger
+    cursor = conn.cursor();
+    posts_id = request.form['post_id']
+    usernames_tagger = request.form['username_tagger']
     query = 'UPDATE Tag SET status = 1 WHERE id = %s AND username_tagger = %s AND username_taggee = %s'
     cursor.execute(query,(posts_id, usernames_tagger, username))
     conn.commit()
     cursor.close()
     return redirect(url_for('home'))
 
+@app.route('/declineTag', methods =['GET', 'POST'])
+def declineTag():
+    username = session['username']
+    cursor = conn.cursor();
+    posts_id = request.form['post_id']
+    usernames_tagger = request.form['username_tagger']
+    query = 'DELETE from Tag WHERE id = %s AND username_tagger = %s AND username_taggee = %s'
+    cursor.execute(query,(posts_id, usernames_tagger, username))
+    conn.commit()
+    cursor.close()
+    return redirect(url_for('home'))
 
+@app.route('/addComment', methods = ['GET','POST'])
+def addComment():
+    username = session['username']
+    cursor = conn.cursor();
+    comment = request.form['comment']
+    content_id = request.form['content_id']
+    query = 'INSERT into Comment(id, comment_text, username) VALUES(%s,%s,%s)'
+    cursor.execute(query,(content_id, comment, username))
+    conn.commit()
+    cursor.close()
+    return redirect(url_for('home'))
 
+@app.route('/leaveGroup', methods=['GET', 'POST'])
+def leaveGroup():
+    username = session['username']
+    cursor = conn.cursor();
+    group_name = request.form['group_name']
+    owner = request.form['username']
+    query = 'DELETE from Comment where comment.username, comment.id in (SELECT DISTINCT comment.username, comment.id from Comment JOIN Content JOIN Share where comment.id = content.id AND content.id = share.id AND share.group_name = %s AND share.username = %s)'
+    cursor.execute(query, (group_name, owner))
+    query = 'DELETE from Member where username = %s AND group_name = %s AND username_creator = %s'
+    cursor.execute(query,(username, group_name, owner))
+    conn.commit()
+    cursor.close()
+    return redirect(url_for('home'))
 
 
 @app.route('/logout')

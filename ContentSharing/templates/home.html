@@ -3,8 +3,209 @@
 </head>
 <body style="background: lightblue;">
 
-<form action="/post" method="POST" style="background= green; font: "Arial", sans-serif; font-size: 30px;">
+
 	<h1>Welcome {{username}}</h1>
+
+
+
+
+	<style type="text/css">
+		table, th, td{
+			border: 1px solid black;
+		}
+
+
+	</style>
+
+	</br><h3>My Posts</h3>
+
+	<table>
+		<th>All Data for Post</th>
+		<th>Post</th>
+		<th>Name</th>
+		<th>File Path</th>
+		<th>Time</th>
+		<th>Comment</th>
+		<th>Likes</th>
+
+	{% for line in posts %}
+		<tr>
+			<td>
+				<form action="/postdata" method="post">
+					<input type="hidden" name = "content_id" value= "{{line.id}}"/>
+					<input type="hidden" name = "content_name" value="{{line.content_name}}"/>
+					<input type="hidden" name = "content_time" value="{{line.timest}}"/>
+					<input type="hidden" name="content_user" value="{{username}}"/>
+					<input type="submit" value = View  />
+				</form>
+			</td>
+			<td>{{line.id}}</td>
+			<td>{{line.content_name}}</td>
+			<td>{{line.file_path}}</td>
+			<td>{{line.timest}}</td>
+			<td>
+				<form action="/addComment" method="post">
+					<input type="hidden" name = "content_id" value= "{{line.id}}"/>
+					<input type="text" name = "comment" placeholder="Type Here"required/>
+					<input type="submit" value = Comment  />
+				</form>
+
+			</td>
+			<td>{{line.likes}}</td>
+		</tr>
+	{% endfor %}
+	</table>
+
+
+	</br> <h3>Shared With Me</h3>
+
+	<table>
+		<th>All Data for Post</th>
+		<th>Post</th>
+		<th>Name</th>
+		<th>Creator</th>
+		<th>Time</th>
+		<th>Comment</th>
+		<th>Likes</th>
+
+	{% for line in shared %}
+		<tr>
+			<td>
+				<form action="/postdata" method="post">
+					<input type="hidden" name = "content_id" value= "{{line.id}}"/>
+					<input type="hidden" name = "content_name" value="{{line.content_name}}"/>
+					<input type="hidden" name = "content_time" value="{{line.timest}}"/>
+					<input type="hidden" name="content_user" value="{{line.username}}"/>
+					<input type="submit" value = View  />
+				</form>
+			</td>
+			<td>{{line.id}}</td>
+			<td>{{line.content_name}}</td>
+			<td>{{line.username}}</td>
+			<td>{{line.timest}}</td>
+			<td>
+				<form action="/addComment" method="post">
+					<input type="hidden" name = "content_id" value= "{{line.id}}"/>
+					<input type="text" name = "comment" placeholder="Type Here"required/>
+					<input type="submit" value = Comment  />
+				</form>
+
+			</td>
+			<td>
+				{{line.likes}}
+				<form action="/likePost" method="post">
+					<input type="hidden" name = "content_id" value= "{{line.id}}"/>
+					<input type="submit" value = Like  />
+				</form>
+
+			</th>
+		</tr>
+	{% endfor %}
+	</table>
+
+	</br><h3>Pending Tags</h3>
+
+
+	<table>
+		<th>Post</th>
+		<th>Name</th>
+		<th>Tagger</th>
+		<th>Accept</th>
+
+	{% for line in pending %}
+		<tr>
+			<td>{{line.id}}</td>
+			<td>{{line.content_name}}</td>
+			<td>{{line.username_tagger}}</td>
+			<td>
+
+				<form action="/acceptTag" method="post">
+					<input type="hidden" name = "post_id" value= "{{line.id}}"/>
+					<input type="hidden" name = "username_tagger" value="{{line.username_tagger}}"/>
+					<input type="submit" value = Yes  />
+				</form>
+
+				<form action="/declineTag" method="post">
+					<input type="hidden" name = "post_id" value= "{{line.id}}"/>
+					<input type="hidden" name = "username_tagger" value="{{line.username_tagger}}"/>
+					<input type="submit" value = No  />
+				</form>
+		</td>
+	</tr>
+	{% endfor %}
+	</table>
+
+</br><h3>Friend Groups </h3>
+
+
+<table>
+	<th>Group Name</th>
+	<th>Description</th>
+	<th>Owner</th>
+	<th>Leave</th>
+
+{% for line in friendgroups %}
+	<tr>
+		<td>{{line.group_name}}</td>
+		<td>{{line.description}}</td>
+		<td>{{line.username}}</td>
+		<td>
+
+			<form action="/leaveGroup" method="post">
+				<input type="hidden" name = "group_name" value= "{{line.group_name}}"/>
+				<input type="hidden" name = "username" value="{{line.username}}"/>
+				<input type="submit" value = Leave  />
+			</form>
+
+	</td>
+</tr>
+{% endfor %}
+</table>
+
+</br><h3>My Groups </h3>
+
+
+<table>
+	<th>Group Name</th>
+	<th>Description</th>
+	<th>Edit Description</th>
+	<th>View</th>
+
+{% for line in mygroups %}
+	<tr>
+		<td>{{line.group_name}}</td>
+		<td>{{line.description}}</td>
+		<td>
+			<form action="/changedescrip" method="post">
+				<input type="hidden" name = "group_name" value= "{{line.group_name}}"/>
+				<input type="text" name= "edit" placeholder="New Description" required/>
+				<input type="submit" value = Change  />
+			</form>
+	</td>
+		<td>
+			<form action="/groupview" method="post">
+				<input type="hidden" name = "description" value = "{{line.description}}"/>
+				<input type="hidden" name = "group_name" value= "{{line.group_name}}"/>
+				<input type="submit" value = View  />
+			</form>
+	</td>
+</tr>
+{% endfor %}
+</table>
+
+
+	{% with messages = get_flashed_messages() %}
+	{% if messages %}
+		<ul class=flashes>
+		{% for message in messages %}
+			<h1>{{ message }}</h1>
+		{% endfor %}
+		</ul>
+	{% endif %}
+	{% endwith %}
+	{% block body %}{% endblock %}
+
+<form action="/post" method="POST" style="background= green; font: "Arial", sans-serif; font-size: 30px;">
 	<h4> Post Here</h4>
 	<input type="text" name = "content_name" placeholder="Content Name" required/> </br>
 	<input type="text" name = "file_path" placeholder="File Path"/> </br>
@@ -31,91 +232,27 @@
 
 </form>
 
+
+
 <form action="/tagFriend" method="POST" style= "background= green; font: "Arial", sans-serif; font-size: 30px;">
 	<h4> Tag Friend</h4>
 	<input type="id" name= "content_id" placeholder="Content ID" required/> </br>
 	<input type="text" name= "username" placeholder="Friend" required/> </br>
 	<input type="submit" value = Add /> </br>
-	{% with messages = get_flashed_messages() %}
-  {% if messages %}
-    <ul class=flashes>
-    {% for message in messages %}
-      <li>{{ message }}</li>
-    {% endfor %}
-    </ul>
-  {% endif %}
-{% endwith %}
-{% block body %}{% endblock %}
+
 </form>
 
-<style type="text/css">
-	table, th, td{
-		border: 1px solid black;
-	}
-</style>
+<form action="/shareToGroup" method="POST" style= "background= green; font: "Arial", sans-serif; font-size: 30px;">
+<h4>Share Content to Friend Group </h4>
+<input type="id" name= "content_id" placeholder="Content ID" required/> </br>
+<input type="text" name= "group_name" placeholder="Group Name" required/> </br>
+<input type="submit" value = Share /> </br>
 
-</br><h3>My Posts</h3>
-
-<table>
-	<th>Post</th>
-	<th>Name</th>
-	<th>File Path</th>
-	<th>Time</th>
-
-{% for line in posts %}
-	<tr>
-		<td>{{line.id}}</td>
-		<td>{{line.content_name}}</td>
-		<td>{{line.file_path}}</td>
-		<td>{{line.timest}}</td>
-	</tr>
-{% endfor %}
-</table>
+</form>
 
 
-</br> <h3>Shared With Me</h3>
 
-<table>
-	<th>Post</th>
-	<th>Name</th>
-	<th>Creator</th>
-	<th>Time</th>
 
-{% for line in shared %}
-	<tr>
-		<td>{{line.id}}</td>
-		<td>{{line.content_name}}</td>
-		<td>{{line.username}}</td>
-		<td>{{line.timest}}</td>
-	</tr>
-{% endfor %}
-</table>
-
-</br><h3>Pending Tags</h3>
-
-<table>
-	<th>Post</th>
-	<th>Name</th>
-	<th>Tagger</th>
-	<th>Accept</th>
-
-{% for line in pending %}
-	<tr>
-		<td>{{line.id}}</td>
-		<td>{{line.content_name}}</td>
-		<td>{{line.username_tagger}}</td>
-		<td> <form action="/acceptTag" method="POST" style= "background= green; font: "Arial", sans-serif; font-size: 30px;">
-			<input type="hidden" name = "post_id" value="1"/>
-			<input type="hidden" name = "username_tagger" value= "UserB"/>
-			<input type="submit" value = Accept /> </br>
-		</form>
-		<form action="/deleteTag" method="POST" style= "background= green; font: "Arial", sans-serif; font-size: 30px;">
-			<input type="submit" value = Decline /> </br>
-		</form>
-	</td>
-</tr>
-{% endfor %}
-</table>
 
 <a href="/logout">Logout</a>
 

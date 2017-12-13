@@ -1,0 +1,67 @@
+<html>
+<head>
+</head>
+<body style="background: lightblue;">
+	<h1 style="margin: 10px 500px;">{{post_name}}</h1>
+  <h5 style="margin: px 30px;">Posted by{{post_user}} at {{post_time}} </h5>
+</br>
+</br>
+
+
+<style type="text/css">
+	table, th, td{
+		border: 1px solid black;
+	}
+</style>
+
+<h5 style="margin: px 30px;">Comments</h5>
+  <table>
+  	<th>User</th>
+  	<th>Comment</th>
+  	<th>Time</th>
+
+  {% for line in comments %}
+  	<tr>
+  		<td>{{line.username}}</td>
+  		<td>{{line.comment_text}}</td>
+  		<td>{{line.timest}}</td>
+  	</tr>
+  {% endfor %}
+  </table>
+</br>
+
+  <h5 style="margin: px 30px;">Shared With</h5>
+    <table>
+    	<th>Friend Groups</th>
+      <th>Description</th>
+
+    {% for line in groups %}
+    	<tr>
+    		<td>{{line.group_name}}</td>
+        <td>{{line.description}}</td>
+    	</tr>
+    {% endfor %}
+    </table>
+</br>
+  <h5 style="margin: px 30px;">Accepted Tags</h5>
+      <table>
+      	<th>Tagger</th>
+        <th>Taggee</th>
+        <th>Time</th>
+
+      {% for line in tags %}
+      	<tr>
+      		<td>{{line.username_tagger}}</td>
+          <td>{{line.username_taggee}}</td>
+          <td>{{line.timest}}</td>
+      	</tr>
+      {% endfor %}
+      </table>
+
+<a href="/home">Go back</a>
+
+</main>
+</body>
+
+
+</html>
